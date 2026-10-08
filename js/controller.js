@@ -7,6 +7,17 @@
   let subscribed = false;
   let sending = false;
   let lastHost = 0;
+  let autoFire = false;
+  const heldPointers = { fire: new Set(), patch: new Set() };
+  const autoFireButton = document.getElementById('autofire');
+
+  function setAutoFire(enabled) {
+    autoFire = enabled;
+    state.fire = autoFire || heldPointers.fire.size > 0;
+    autoFireButton.classList.toggle('active', autoFire);
+    autoFireButton.setAttribute('aria-pressed', String(autoFire));
+    autoFireButton.firstChild.textContent = `AUTO: ${autoFire ? 'ON' : 'OFF'}`;
+  }
 
   async function send() {
     if (!subscribed || sending || document.hidden) return;
@@ -45,6 +56,8 @@
 
   function reset() {
     Object.keys(state).forEach(key => { state[key] = typeof state[key] === 'boolean' ? false : 0; });
+    Object.values(heldPointers).forEach(pointers => pointers.clear());
+    setAutoFire(false);
     actions.length = 0;
     document.querySelectorAll('.held').forEach(element => element.classList.remove('held'));
     document.querySelectorAll('.stick span').forEach(element => { element.style.transform = ''; });
@@ -55,10 +68,22 @@
   stick('aim', 'ax', 'ay');
   ['fire', 'patch'].forEach(key => {
     const button = document.getElementById(key);
-    const pointers = new Set();
-    button.onpointerdown = event => { pointers.add(event.pointerId); button.setPointerCapture(event.pointerId); state[key] = true; button.classList.add('held'); };
-    button.onpointerup = button.onpointercancel = button.onlostpointercapture = event => { pointers.delete(event.pointerId); state[key] = pointers.size > 0; button.classList.toggle('held', state[key]); };
+    const pointers = heldPointers[key];
+    button.onpointerdown = event => {
+      pointers.add(event.pointerId);
+      button.setPointerCapture(event.pointerId);
+      state[key] = true;
+      button.classList.add('held');
+      send();
+    };
+    button.onpointerup = button.onpointercancel = button.onlostpointercapture = event => {
+      pointers.delete(event.pointerId);
+      state[key] = pointers.size > 0 || (key === 'fire' && autoFire);
+      button.classList.toggle('held', pointers.size > 0);
+      send();
+    };
   });
+  autoFireButton.onclick = () => { setAutoFire(!autoFire); send(); };
   document.querySelectorAll('[data-action]').forEach(button => {
     button.onclick = () => { if (actions.length < 5) actions.push(button.dataset.action); send(); };
   });
