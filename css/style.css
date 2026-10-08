@@ -1,0 +1,74 @@
+/* ==========================================================================
+   style.css — Identidad gráfica de CyberGuard: ISND Defense
+   Tailwind (CDN) maneja el layout; aquí van los detalles propios del tema.
+   ========================================================================== */
+
+:root {
+  --cg-cyan: #22d3ee;
+  --cg-magenta: #d946ef;
+  --cg-green: #4ade80;
+  --cg-bg: #050b18;
+}
+
+html, body {
+  background: var(--cg-bg);
+  overscroll-behavior: none;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+/* Layout crítico en CSS propio (no depende de que Tailwind CDN cargue primero):
+   Phaser mide el tamaño de #game-container al arrancar, así que debe ser correcto desde el inicio. */
+body { display: flex; flex-direction: column; }
+main { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; }
+/* El marco conserva SIEMPRE la proporción 3:2 (js/game.js ajusta su tamaño): así el canvas de
+   Phaser lo llena sin márgenes y los elementos DOM (campo de nombre) quedan bien alineados. */
+#game-frame { position: relative; width: min(100%, 960px); aspect-ratio: 3 / 2; overflow: hidden; }
+#game-container { width: 100%; height: 100%; }
+
+.font-display {
+  font-family: 'Orbitron', Consolas, 'Courier New', monospace;
+}
+
+/* Marco neón alrededor del juego */
+#game-frame {
+  background: var(--cg-bg);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.45), 0 0 22px rgba(34, 211, 238, 0.25);
+}
+
+/* Efecto sutil de líneas de escaneo tipo monitor CRT (no bloquea el mouse) */
+#game-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: repeating-linear-gradient(
+    to bottom, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0) 3px, rgba(0, 0, 0, 0.09) 4px);
+  z-index: 5;
+}
+
+#game-container canvas {
+  display: block;
+  outline: none;
+}
+
+/* Campo de nombre del agente (elemento DOM dentro de Phaser) */
+.cg-input {
+  width: 200px;
+  padding: 9px 12px;
+  font: bold 16px Consolas, 'Courier New', monospace;
+  color: #e0f2fe;
+  background: #0b1c3a;
+  border: 2px solid var(--cg-cyan);
+  border-radius: 4px;
+  outline: none;
+  text-transform: uppercase;
+}
+.cg-input::placeholder { color: #475569; text-transform: none; }
+.cg-input:focus { box-shadow: 0 0 12px rgba(34, 211, 238, 0.6); }
+
+@media (prefers-reduced-motion: reduce) {
+  #game-frame::after { display: none; }
+}

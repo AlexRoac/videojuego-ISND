@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberGuard: ISND Defense</title>
+  <meta name="description" content="Videojuego web de ciberseguridad: defiende el centro de datos de malware, phishing, DDoS y ransomware. Proyecto de Nuevas Tecnologías — ISND." />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+
+  <!-- Tipografía de la interfaz HTML (el juego usa fuente monoespaciada del sistema) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS (CDN): estilos de la interfaz que rodea al juego -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body class="h-full bg-slate-950 text-slate-200 flex flex-col">
+
+  <header class="shrink-0 flex items-center justify-between gap-3 px-4 py-2 border-b border-cyan-900/60 bg-slate-950/90">
+    <div class="flex items-center gap-3">
+      <img src="assets/favicon.svg" alt="" class="w-8 h-8" />
+      <div>
+        <h1 class="font-display text-lg sm:text-xl font-extrabold tracking-widest text-cyan-300 leading-none">CYBERGUARD</h1>
+        <p class="text-[11px] text-fuchsia-300 tracking-[0.3em] leading-tight">ISND · DEFENSE</p>
+      </div>
+    </div>
+    <div class="hidden sm:block text-xs text-slate-400 text-right leading-tight">
+      Nuevas Tecnologías<br />Ingeniería en Sistemas y Negocios Digitales
+    </div>
+    <button id="btn-fullscreen" type="button"
+      class="text-xs px-3 py-1.5 rounded border border-cyan-700 text-cyan-300 hover:bg-cyan-900/40 transition">
+      ⛶ Pantalla completa
+    </button>
+  </header>
+
+  <main class="flex-1 min-h-0 flex items-center justify-center p-2 sm:p-3">
+    <div id="game-frame" class="rounded-lg">
+      <div id="boot-loader" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950 rounded-lg">
+        <div class="font-display text-cyan-300 text-2xl tracking-widest animate-pulse">INICIANDO SISTEMA…</div>
+        <div class="mt-3 text-xs text-slate-500">Cargando Phaser 3 y generando gráficos</div>
+      </div>
+      <div id="game-container" class="w-full h-full"></div>
+      <noscript>
+        <p class="p-6 text-center text-red-400">Este juego necesita JavaScript habilitado.</p>
+      </noscript>
+    </div>
+  </main>
+
+  <footer class="shrink-0 px-4 py-1.5 text-center text-[11px] text-slate-500 border-t border-slate-800">
+    Hecho con Phaser 3 · Web Audio API · Tailwind CSS · Supabase/LocalStorage &nbsp;|&nbsp;
+    <a class="text-cyan-500 hover:underline" href="README.md" target="_blank" rel="noopener">Documentación</a>
+  </footer>
+
+  <!-- Phaser 3 (CDN): motor gráfico, físicas Arcade y bucle de juego -->
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+
+  <!-- Módulos del juego (orden importante: primero configuración y servicios) -->
+  <script src="js/config.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/services/audio.js"></script>
+  <script src="js/services/leaderboard.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/scenes/BootScene.js"></script>
+  <script src="js/scenes/MenuScene.js"></script>
+  <script src="js/scenes/GameScene.js"></script>
+  <script src="js/scenes/GameOverScene.js"></script>
+  <script src="js/scenes/VictoryScene.js"></script>
+  <script src="js/scenes/LeaderboardScene.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/services/remote.js"></script>
+</body>
+</html>

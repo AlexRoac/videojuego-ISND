@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>CyberGuard · Mando</title><link rel="stylesheet" href="css/controller.css"></head>
+<body>
+<header><strong>CYBERGUARD · MANDO</strong><span id="status" role="status">Conectando…</span></header>
+<nav><button data-action="advance">Jugar / Continuar</button><button data-action="pause">Pausa</button><button data-action="mute">Sonido</button><button id="fullscreen">Pantalla completa</button></nav>
+<main>
+<section><h2>MOVER</h2><div class="stick" id="move" aria-label="Desliza para mover"><span></span></div></section>
+<section class="actions"><button id="fire">DISPARAR<br><small>Mantener</small></button><button data-action="pulse">FILTRAR</button><button id="patch">PARCHEAR<br><small>Mantener cerca de servidor</small></button></section>
+<section><h2>APUNTAR</h2><div class="stick" id="aim" aria-label="Desliza para apuntar"><span></span></div></section>
+</main><p class="hint">Usa ambos pulgares. Si no apuntas, disparas hacia donde te mueves. Mantén esta pantalla abierta.</p>
+<script src="js/controller.js"></script>
+</body></html>

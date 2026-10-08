@@ -1,0 +1,11 @@
+{
+  "name": "cyberguard-isnd-defense",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Juego CyberGuard con mando remoto entre redes distintas",
+  "scripts": {
+    "start": "node server.cjs",
+    "test": "node tests/remote.cjs"
+  },
+  "engines": { "node": ">=20" }
+}
