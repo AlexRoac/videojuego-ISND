@@ -4,6 +4,7 @@
   "private": true,
   "description": "Juego CyberGuard con mando remoto entre redes distintas",
   "scripts": {
+    "build": "node scripts/build-static.cjs",
     "start": "node server.cjs",
     "test": "node tests/remote.cjs"
   },
