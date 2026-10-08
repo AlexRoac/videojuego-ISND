@@ -80,12 +80,31 @@
           if (subscriptionStatus === 'SUBSCRIBED') {
             const url = new URL('controller.html', location.href);
             url.hash = new URLSearchParams({ room }).toString();
+            const instruction = document.createElement('p');
+            instruction.textContent = 'Escanea este código QR con la cámara del celular:';
+            instruction.style.cssText = 'margin:0 0 10px';
+            const qr = document.createElement('div');
+            qr.setAttribute('aria-label', 'Código QR del enlace del mando');
+            qr.style.cssText = 'width:220px;min-height:220px;margin:0 auto 14px;padding:10px;background:#fff;border-radius:10px;box-sizing:content-box';
             const link = document.createElement('a');
             link.href = url.href;
             link.textContent = url.href;
             link.style.cssText = 'display:block;color:#67e8f9;margin-bottom:12px';
-            links.replaceChildren(link);
-            status.textContent = 'Abre este enlace en el celular; puede usar datos móviles u otra Wi-Fi.';
+            links.replaceChildren(instruction, qr, link);
+            if (window.QRCode) {
+              new window.QRCode(qr, {
+                text: url.href,
+                width: 220,
+                height: 220,
+                colorDark: '#020617',
+                colorLight: '#ffffff',
+                correctLevel: window.QRCode.CorrectLevel.M,
+              });
+            } else {
+              qr.remove();
+              instruction.textContent = 'Abre este enlace en el celular:';
+            }
+            status.textContent = 'Escanea el QR. El celular puede usar datos móviles u otra Wi-Fi.';
             clearInterval(heartbeat);
             const announce = () => channel?.send({ type: 'broadcast', event: 'host', payload: { online: true } });
             announce();
