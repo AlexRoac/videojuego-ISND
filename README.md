@@ -3,8 +3,7 @@
 > Videojuego web de ciberseguridad y gestión de infraestructura IT.
 > Proyecto de la asignatura **Nuevas Tecnologías** — Ingeniería en Sistemas y Negocios Digitales (ISND).
 
-🔗 **Juega aquí (GitHub Pages):** `https://TU-USUARIO.github.io/NOMBRE-DEL-REPOSITORIO/`
-<!-- ✏️ Reemplazar por el enlace real una vez activado GitHub Pages -->
+🔗 **Juega aquí:** https://videojuego-isnd.vercel.app
 
 ---
 
@@ -111,34 +110,24 @@ Completar las **3 misiones** sin que la integridad caiga a 0 % y derrotar al jef
 
 ### Celular como control desde otra red (Wi-Fi + datos móviles)
 
-Ambos equipos necesitan internet, pero **no necesitan estar en la misma red**. Los controles pasan por el servidor público mediante HTTP y eventos SSE, así que no se requiere conexión directa, abrir puertos del router ni un servidor TURN.
+Ambos equipos necesitan internet, pero **no necesitan estar en la misma red**. Los controles viajan por canales WebSocket de **Supabase Realtime** y el sitio está alojado en Vercel; no hace falta abrir puertos ni mantener un servidor propio.
 
-**Primero publica el servidor**, que incluye el juego y el mando:
+Para jugar:
 
-1. Sube el proyecto a un repositorio de GitHub.
-2. En Render crea un **Web Service** con ese repositorio, runtime **Node**, Build Command `npm install --ignore-scripts` y Start Command `npm start`. También se incluye `render.yaml` para usar un Blueprint. Revisa el plan y su costo antes de crear el servicio.
-3. Espera que el servicio esté disponible y copia su dirección HTTPS. No basta con publicar los HTML en un alojamiento estático: debe ejecutarse `server.cjs`.
-
-Referencia: [documentación oficial de Web Services de Render](https://render.com/docs/web-services). El servidor escucha en `0.0.0.0` y utiliza el puerto `PORT` del proveedor. Usa una sola instancia porque las sesiones viven en memoria; reiniciar el servidor requiere generar un enlace nuevo. El proxy debe permitir SSE y no almacenar sus respuestas en un búfer. Si el servicio se suspende, espera a que arranque antes de conectar.
-
-**Después, para jugar:**
-
-1. Abre la dirección pública del juego en la computadora con Wi-Fi.
+1. Abre https://videojuego-isnd.vercel.app en la computadora.
 2. Pulsa **📱 Conectar celular**. El juego genera un enlace HTTPS del mando.
 3. Abre ese enlace en el celular usando datos móviles o cualquier otra red con internet.
 4. Usa el joystick izquierdo para moverte y el derecho para apuntar. Mantén **Disparar** o **Parchear**; **Filtrar**, **Pausa** y **Jugar / Continuar** funcionan con un toque. En las pantallas de victoria o derrota, Continuar regresa al menú.
 
-También puedes abrir el juego localmente (incluso con Live Server) y escribir la dirección HTTPS del servidor publicado en el campo **Servidor público**, dentro de **Conectar celular**. Pulsa **Generar enlace del mando**. Se recuerda esa dirección para futuras sesiones. GitHub Pages puede servir el juego si usas este relay público por separado.
-
-Mantén el navegador del celular abierto. Al perder conexión se sueltan los controles automáticamente. El enlace es exclusivo de esa sesión del juego; otra pestaña puede crear su propio mando. Puedes seguir usando teclado y mouse.
+Mantén el navegador del celular abierto. Al perder conexión se sueltan los controles automáticamente. Cada enlace contiene en el fragmento `#room` un identificador aleatorio de 128 bits y es exclusivo de esa sesión. Puedes seguir usando teclado y mouse.
 
 ### Pruebas locales en la misma red
 
-Ejecuta `npm start` o `node server.cjs` y abre **http://localhost:5173** en la computadora. Deja vacío **Servidor público**. Los enlaces locales solo funcionan con el celular en la misma Wi-Fi; la ventana del juego lo indica. Si no conecta, permite Node.js en el firewall para redes privadas. No uses `localhost` en el celular: representa al propio teléfono.
+Ejecuta `npm start` o `node server.cjs` y abre **http://localhost:5173** en la computadora. El enlace que genera el juego usa la dirección local, así que para abrirlo desde el celular sustituye `localhost` por la IP Wi-Fi de la computadora o prueba directamente la versión publicada.
 
 El servidor utiliza únicamente módulos incluidos con Node.js. Para detenerlo pulsa `Ctrl+C`. Puedes cambiar el puerto mediante la variable de entorno `PORT`.
 
-`npm test` comprueba las sesiones, los controles entre orígenes distintos, los enlaces HTTPS detrás de un proxy, la validación del token y la liberación de controles tras una desconexión. Estas pruebas locales no sustituyen probar una computadora con Wi-Fi y un teléfono con datos contra el servicio publicado.
+`npm test` conserva las pruebas del relay HTTP/SSE local. El mando publicado utiliza Supabase Realtime y se verifica aparte con dos clientes conectados al mismo canal.
 
 ### Solo teclado y mouse
 Basta con abrir `index.html` en el navegador. Si prefieres un servidor local:
