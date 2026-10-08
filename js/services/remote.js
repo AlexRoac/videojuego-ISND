@@ -1,5 +1,5 @@
 (() => {
-  const neutral = () => ({ x: 0, y: 0, ax: 0, ay: 0, fire: false, patch: false });
+  const neutral = () => ({ x: 0, y: 0, ax: 0, ay: 0, fire: false, patch: false, autoAim: false });
   CG.remote = { ...neutral(), connected: false };
 
   let channel;
@@ -31,7 +31,7 @@
     const axis = value => Number.isFinite(value) ? Math.max(-1, Math.min(1, value)) : 0;
     const safe = {
       x: axis(input.x), y: axis(input.y), ax: axis(input.ax), ay: axis(input.ay),
-      fire: input.fire === true, patch: input.patch === true,
+      fire: input.fire === true, patch: input.patch === true, autoAim: input.autoAim === true,
     };
     if (['pulse', 'pause', 'advance', 'mute'].includes(input.action)) safe.action = input.action;
     lastInput = Date.now();

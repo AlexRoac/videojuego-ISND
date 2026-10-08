@@ -295,8 +295,11 @@ class GameScene extends Phaser.Scene {
     const spd = this.P.speed * (this.stunT > 0 ? 0.4 : 1);
     this.player.setVelocity(vx * spd, vy * spd);
 
-    // Apuntado: mouse si se ha usado; si no, la dirección de movimiento
-    if (remote?.connected && Math.hypot(remote.ax, remote.ay) > 0.12) {
+    // Apuntado asistido del mando; si no hay objetivo, conserva el control manual.
+    const autoTarget = remote?.connected && remote.autoAim ? this.findAutoAimTarget() : null;
+    if (autoTarget) {
+      this.aim = Phaser.Math.Angle.Between(this.player.x, this.player.y, autoTarget.x, autoTarget.y);
+    } else if (remote?.connected && Math.hypot(remote.ax, remote.ay) > 0.12) {
       this.aim = Math.atan2(remote.ay, remote.ax);
     } else if (remote?.connected && len > 0) {
       this.aim = Math.atan2(vy, vx);
@@ -309,6 +312,26 @@ class GameScene extends Phaser.Scene {
     this.player.rotation = this.aim;
     this.player.setAlpha(this.invulnT > 0 ? (Math.floor(this.time_ / 80) % 2 ? 0.4 : 1) : 1);
     this.trail.emitting = len > 0;
+  }
+
+  /** Objetivo hostil más cercano para el apuntado asistido; nunca el tráfico legítimo. */
+  findAutoAimTarget() {
+    let best = null;
+    let bestDistance = Infinity;
+    const consider = (target) => {
+      if (!target?.active) return;
+      const dx = target.x - this.player.x;
+      const dy = target.y - this.player.y;
+      const distance = dx * dx + dy * dy;
+      if (distance < bestDistance) { best = target; bestDistance = distance; }
+    };
+
+    this.threats.getChildren().forEach((threat) => {
+      if (threat.kind !== 'legit') consider(threat);
+    });
+    this.bolts.getChildren().forEach(consider);
+    if (this.boss?.ready && this.boss.shield <= 0) consider(this.boss);
+    return best;
   }
 
   /** Acción "Destruir virus": dispara un proyectil hacia el mouse. */

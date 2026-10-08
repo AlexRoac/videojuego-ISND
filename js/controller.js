@@ -1,6 +1,6 @@
 (() => {
   const room = new URLSearchParams(location.hash.slice(1)).get('room') || '';
-  const state = { x: 0, y: 0, ax: 0, ay: 0, fire: false, patch: false };
+  const state = { x: 0, y: 0, ax: 0, ay: 0, fire: false, patch: false, autoAim: false };
   const status = document.getElementById('status');
   const actions = [];
   let channel;
@@ -10,6 +10,7 @@
   let autoFire = false;
   const heldPointers = { fire: new Set(), patch: new Set() };
   const autoFireButton = document.getElementById('autofire');
+  const autoAimButton = document.getElementById('autoaim');
 
   function setAutoFire(enabled) {
     autoFire = enabled;
@@ -17,6 +18,13 @@
     autoFireButton.classList.toggle('active', autoFire);
     autoFireButton.setAttribute('aria-pressed', String(autoFire));
     autoFireButton.firstChild.textContent = `AUTO: ${autoFire ? 'ON' : 'OFF'}`;
+  }
+
+  function setAutoAim(enabled) {
+    state.autoAim = enabled;
+    autoAimButton.classList.toggle('active', enabled);
+    autoAimButton.setAttribute('aria-pressed', String(enabled));
+    autoAimButton.firstChild.textContent = `AIM: ${enabled ? 'ON' : 'OFF'}`;
   }
 
   async function send() {
@@ -58,6 +66,7 @@
     Object.keys(state).forEach(key => { state[key] = typeof state[key] === 'boolean' ? false : 0; });
     Object.values(heldPointers).forEach(pointers => pointers.clear());
     setAutoFire(false);
+    setAutoAim(false);
     actions.length = 0;
     document.querySelectorAll('.held').forEach(element => element.classList.remove('held'));
     document.querySelectorAll('.stick span').forEach(element => { element.style.transform = ''; });
@@ -84,6 +93,7 @@
     };
   });
   autoFireButton.onclick = () => { setAutoFire(!autoFire); send(); };
+  autoAimButton.onclick = () => { setAutoAim(!state.autoAim); send(); };
   document.querySelectorAll('[data-action]').forEach(button => {
     button.onclick = () => { if (actions.length < 5) actions.push(button.dataset.action); send(); };
   });
