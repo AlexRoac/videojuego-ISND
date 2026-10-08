@@ -1,23 +1,28 @@
 (() => {
-  const query = new URLSearchParams(location.search);
-  const endpoint = `/api/input?room=${encodeURIComponent(query.get('room') || '')}&token=${encodeURIComponent(query.get('token') || '')}`;
+  const room = new URLSearchParams(location.hash.slice(1)).get('room') || '';
   const state = { x: 0, y: 0, ax: 0, ay: 0, fire: false, patch: false };
   const status = document.getElementById('status');
   const actions = [];
+  let channel;
+  let subscribed = false;
   let sending = false;
-  let blocked = false;
+  let lastHost = 0;
+
   async function send() {
-    if (sending || blocked) return;
+    if (!subscribed || sending || document.hidden) return;
     sending = true;
     const action = actions.shift();
     try {
-      const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...state, action }), signal: AbortSignal.timeout(2000) });
-      if (!response.ok) { blocked = true; throw new Error(); }
-      const result = await response.json();
-      status.textContent = result.connected ? '✓ Conectado' : 'Abre el juego en la computadora';
-    } catch { status.textContent = blocked ? 'Enlace inválido. Conecta de nuevo desde la computadora.' : 'Sin conexión. Reintentando…'; }
-    finally { sending = false; }
+      const result = await channel.send({ type: 'broadcast', event: 'input', payload: { ...state, action } });
+      if (result !== 'ok') throw new Error(String(result));
+      status.textContent = Date.now() - lastHost < 1500 ? '✓ Conectado' : 'Abre el juego en la computadora';
+    } catch {
+      status.textContent = 'Sin conexión. Reintentando…';
+    } finally {
+      sending = false;
+    }
   }
+
   function stick(id, xkey, ykey) {
     const element = document.getElementById(id);
     const knob = element.querySelector('span');
@@ -37,26 +42,63 @@
     const release = event => { if (event.pointerId !== pointer) return; pointer = undefined; state[xkey] = state[ykey] = 0; knob.style.transform = ''; };
     element.onpointerup = element.onpointercancel = element.onlostpointercapture = release;
   }
-  stick('move', 'x', 'y'); stick('aim', 'ax', 'ay');
+
+  function reset() {
+    Object.keys(state).forEach(key => { state[key] = typeof state[key] === 'boolean' ? false : 0; });
+    actions.length = 0;
+    document.querySelectorAll('.held').forEach(element => element.classList.remove('held'));
+    document.querySelectorAll('.stick span').forEach(element => { element.style.transform = ''; });
+    send();
+  }
+
+  stick('move', 'x', 'y');
+  stick('aim', 'ax', 'ay');
   ['fire', 'patch'].forEach(key => {
     const button = document.getElementById(key);
     const pointers = new Set();
     button.onpointerdown = event => { pointers.add(event.pointerId); button.setPointerCapture(event.pointerId); state[key] = true; button.classList.add('held'); };
     button.onpointerup = button.onpointercancel = button.onlostpointercapture = event => { pointers.delete(event.pointerId); state[key] = pointers.size > 0; button.classList.toggle('held', state[key]); };
   });
-  document.querySelectorAll('[data-action]').forEach(button => { button.onclick = () => { if (actions.length < 5) actions.push(button.dataset.action); send(); }; });
-  function reset() {
-    Object.keys(state).forEach(key => { state[key] = typeof state[key] === 'boolean' ? false : 0; });
-    actions.length = 0;
-    document.querySelectorAll('.held').forEach(el => el.classList.remove('held'));
-    document.querySelectorAll('.stick span').forEach(el => { el.style.transform = ''; });
-    navigator.sendBeacon(endpoint, JSON.stringify(state));
-  }
+  document.querySelectorAll('[data-action]').forEach(button => {
+    button.onclick = () => { if (actions.length < 5) actions.push(button.dataset.action); send(); };
+  });
   window.addEventListener('blur', reset);
   window.addEventListener('pagehide', reset);
   document.addEventListener('visibilitychange', () => { if (document.hidden) reset(); });
-  document.getElementById('fullscreen').onclick = () => { document.documentElement.requestFullscreen?.().catch(() => { status.textContent = 'Gira el celular para jugar en horizontal'; }); };
+  document.getElementById('fullscreen').onclick = () => document.documentElement.requestFullscreen?.().catch(() => {
+    status.textContent = 'Gira el celular para jugar en horizontal';
+  });
   window.addEventListener('contextmenu', event => event.preventDefault());
-  setInterval(() => { if (!document.hidden) send(); }, 50);
-  send();
+
+  async function start() {
+    const config = CG.CONFIG.SUPABASE;
+    if (!room || !/^[a-f0-9]{32}$/.test(room)) {
+      status.textContent = 'Enlace inválido. Genera uno nuevo desde el juego.';
+      return;
+    }
+    if (!window.supabase?.createClient || !config.URL || !config.ANON_KEY) {
+      status.textContent = 'El mando no está configurado.';
+      return;
+    }
+    const client = window.supabase.createClient(config.URL, config.ANON_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    });
+    channel = client
+      .channel(`cyberguard:${room}`, { config: { broadcast: { ack: true } } })
+      .on('broadcast', { event: 'host' }, () => {
+        lastHost = Date.now();
+        status.textContent = '✓ Conectado';
+      })
+      .subscribe((subscriptionStatus, error) => {
+        subscribed = subscriptionStatus === 'SUBSCRIBED';
+        if (subscribed) { status.textContent = 'Abre el juego en la computadora'; send(); }
+        if (subscriptionStatus === 'CHANNEL_ERROR' || subscriptionStatus === 'TIMED_OUT') {
+          console.error('Supabase Realtime:', subscriptionStatus, error);
+          status.textContent = 'Sin conexión. Recarga para reintentar.';
+        }
+      });
+    setInterval(() => { if (!document.hidden) send(); }, 50);
+  }
+
+  start();
 })();

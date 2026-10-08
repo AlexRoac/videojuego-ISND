@@ -28,8 +28,8 @@ CG.CONFIG = {
    * el modo "mock" con LocalStorage. Ver README.md para crear la tabla en Supabase.
    */
   SUPABASE: {
-    URL: '',        // p. ej. 'https://xxxx.supabase.co'
-    ANON_KEY: '',   // clave pública "anon" (NUNCA la service_role)
+    URL: 'https://louvghtsokwedxxdhktm.supabase.co',
+    ANON_KEY: 'sb_publishable_lReRXU2emTDAOr6M54tEMQ_AyaXibRO', // pública; nunca service_role/secret
     TABLE: 'scores',
   },
 
